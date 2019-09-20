@@ -5,12 +5,7 @@ Created on Sun Sep  8 19:27:41 2019
 @author: majit
 """
 
-import cv2, os
-import numpy as np
-from PIL import Image
 import pandas as pd
-
-
 from time import time
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
@@ -19,13 +14,18 @@ from sklearn.decomposition import PCA
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
 
-"""
-df = pd.read_csv("mva2.csv")
+
+df = pd.read_csv("faces_data_tyasa.csv")
 
 X = df.iloc[:,:-2]
 y = df.iloc[:,-1]
-"""
 
+target_names = list(df.target_names.unique())
+n_classes = len(target_names)
+
+
+
+"""
 from sklearn.datasets import fetch_lfw_people
 
 lfw_people = fetch_lfw_people(min_faces_per_person=70, resize=0.4)
@@ -38,14 +38,12 @@ n_features = X.shape[1]
 y = lfw_people.target
 target_names = lfw_people.target_names
 n_classes = target_names.shape[0]
-
-
-
+"""
 
 
 # split into a training and testing set
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.25, random_state=42)
+    X, y, test_size=0.2, random_state=42)
 
 
 n_components = 150
@@ -72,6 +70,3 @@ y_pred = clf.predict(X_test_pca)
 
 print(classification_report(y_test, y_pred,labels=range(n_classes)))
 print(confusion_matrix(y_test, y_pred, labels=range(n_classes)))
-
-
-clf.predict_proba(X_test_pca[1:3,:])[0]

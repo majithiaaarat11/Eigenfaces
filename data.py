@@ -1,23 +1,20 @@
-# Import the required modules
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Sep 20 10:47:00 2019
+
+@author: majit
+"""
+
 import cv2, os
 import numpy as np
-from PIL import Image
 import pandas as pd
 
-# For face detection we will use the Haar Cascade provided by OpenCV.
-cascadePath = "haarcascade_frontalface_default.xml"
-faceCascade = cv2.CascadeClassifier(cascadePath)
+shape = (64,64)
+path = "data2"
 
-
-#TODO: Better system for ids
-ids = {'bhuvaneshwar':1,'jasprit':2,'virat':3}
- 
- 
-def get_images_uniform_and_labels2(path):
+def get_image_paths(path):
     
-    labels = []
     image_paths = []
-    images = []
     
     ls = os.listdir(path)
     for l in ls:
@@ -25,35 +22,41 @@ def get_images_uniform_and_labels2(path):
         for i in iss:
             image_paths.append(os.path.join(path,l,i))
 
-    for image_path in image_paths:
-        # Read the image and convert to grayscale
-        image_pil = Image.open(image_path).convert('L')
-        # Convert the image format into numpy array
-        image = np.array(image_pil, 'uint8')
-        
-        nbr = image_path.split('\\')[1]
-        
-        faces = faceCascade.detectMultiScale(image)
-        print(image_path)
-        # If face is detected, append the face to images and the label to labels
-        for (x, y, w, h) in faces:
-            images.append(cv2.resize(image[y: y + h, x: x + w],(120,120)).reshape((1,120*120)))
-            labels.append(ids[nbr])
+    return image_paths
 
-    #list to np arrays
-    #TODO: Normalise    
+
+
+image_paths = get_image_paths(path)
+
+
+def get_images_and_labels(image_paths):
+    
+    images = []
+    target_names = []
+    
+    for image_path in image_paths:
+        
+        im = cv2.imread(image_path)
+        gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+        images.append(cv2.resize(gray,shape).reshape((1,shape[0]*shape[1])))
+        target_names.append(image_path.split('\\')[1][:-17])
+        
+        
     X = np.concatenate(images)
     df= pd.DataFrame(X)
-    df['target'] = pd.Series(labels, index=df.index)
+    df['target_names'] = pd.Series(target_names, index=df.index)
+    
+    df['target'] = pd.factorize(df['target_names'])[0]
     
     return X, df
 
-X_train, df_train = get_images_uniform_and_labels2('train')
-np.save('X_train',X_train)
-df_train.to_csv("faces_data_train.csv", index = False)
 
-_, df_test = get_images_uniform_and_labels2('test')
-df_test.to_csv("faces_data_test.csv", index = False)
+X, df = get_images_and_labels(image_paths)
 
 
+np.save('X_tyasa',X)
+df.to_csv("faces_data_tyasa.csv", index = False)
 
+
+
+        
